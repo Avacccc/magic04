@@ -5,7 +5,10 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report
-
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+import tensorflow as tf
 
 #read dataset
 cols = ["fLength", "fWidth", "fSize", "fConc", "fConc1", "fAsym", "fM3Long", "fM3Trans", "fAlpha", "fDist", "class"]
@@ -47,3 +50,29 @@ test, X_test, y_test = scale_dataset(test, oversample=False)
 
 knn_model = KNeighborsClassifier(n_neighbors=5)
 knn_model.fit(X_train, y_train)
+
+nb_model = GaussianNB()
+nb_model = nb_model.fit(X_train, y_train)
+
+svm_model = SVC()
+svm_model = svm_model.fit(X_train, y_train)
+
+lg_model = LogisticRegression()
+lg_model = lg_model.fit(X_train, y_train)
+
+def train_model(X_train, y_train, num_nodes, dropout_prob, lr, batch_size, epochs):
+  nn_model = tf.keras.Sequential([
+      tf.keras.layers.Dense(num_nodes, activation='relu', input_shape=(10,)),
+      tf.keras.layers.Dropout(dropout_prob),
+      tf.keras.layers.Dense(num_nodes, activation='relu'),
+      tf.keras.layers.Dropout(dropout_prob),
+      tf.keras.layers.Dense(1, activation='sigmoid')
+  ])
+
+  nn_model.compile(optimizer=tf.keras.optimizers.Adam(lr), loss='binary_crossentropy',
+                  metrics=['accuracy'])
+  history = nn_model.fit(
+    X_train, y_train, epochs=epochs, batch_size=batch_size, validation_split=0.2, verbose=0
+  )
+
+  return nn_model, history
